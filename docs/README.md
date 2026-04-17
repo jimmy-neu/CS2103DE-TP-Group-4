@@ -173,7 +173,7 @@ Use this README as the entrypoint, then move into detailed guides:
 
 - Product Requirements: [PRD.md](PRD.md)
 - Software Design Document: [SDD.md](SDD.md)
-- User Guide: [UG.md](UG.md)
+- User Guide: [user.guide](userGuide.md)
 - Developer Guide: [DG.md](DG.md)
 - API Reference: [API.md](API.md)
 
@@ -231,4 +231,3 @@ Before opening a pull request, confirm:
 
 This project is licensed under Apache License 2.0.
 See the root LICENSE file for details.
-

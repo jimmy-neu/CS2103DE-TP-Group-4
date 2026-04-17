@@ -264,7 +264,7 @@ Existing test groups are in:
 2. Implement focused changes by module.
 3. Add or update tests.
 4. Run `test` and manual smoke checks.
-5. Update affected docs (`API.md`, `SDD.md`, this guide, or `UserGuide.md` as needed).
+5. Update affected docs (`API.md`, `SDD.md`, this guide, or `user.guide` as needed).
 6. Open PR with rationale, risk notes, and validation evidence.
 
 ## 11. Definition of Done Checklist
@@ -278,4 +278,3 @@ Use this checklist for each non-trivial change:
 - [ ] Error handling paths validated for changed logic.
 - [ ] Documentation updated where behavior/contracts changed.
 - [ ] No layering violations introduced.
-

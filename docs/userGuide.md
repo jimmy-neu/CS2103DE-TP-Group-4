@@ -69,9 +69,7 @@ System reaction:
 
 ## Golden Path: Plan a Trip End-to-End
 
-<p align="center">
-	<img src="ug_diagrams/golden_path.svg" alt="Golden Path Diagram" width="60%" />
-</p>
+![Golden Path Diagram](./ug_diagrams/golden_path.svg)
 
 ## Main Features
 
@@ -296,7 +294,7 @@ What to do:
 
 Use these placeholders when preparing release-ready screenshots:
 
-| Step | Suggested Screenshot Filename | Capture Target |
+| Step | Suggested Screenshot  | Capture Target |
 |---|---|---|
 | Launch app | `ug-01-home-page.png` | Home page with `Live Activity Snapshot` and `Trips` list |
 | Add first trip | `ug-02-add-trip-dialog.png` | Add Trip dialog with required fields visible |
@@ -322,4 +320,3 @@ Backup recommendation:
 
 Use the `?` button in the top-right area of the app.
 It opens page-specific guidance for Home, Trip, and Activity screens.
-
