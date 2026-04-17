@@ -34,5 +34,40 @@
     "id": 4,
     "name": "Kanye Meetup Fee",
     "priority": 0
+  },
+  {
+    "cost": 40.0,
+    "currency": "SGD",
+    "type": "ENTERTAINMENT",
+    "imagePath": "data/images/expense-entrance-fee.jpg",
+    "id": 5,
+    "name": "Entrance Fee",
+    "priority": 0
+  },
+  {
+    "cost": 20.0,
+    "currency": "SGD",
+    "type": "FOOD",
+    "imagePath": "data/images/expense-dim-sum-breakfast.jpg",
+    "id": 6,
+    "name": "Dim Sum Breakfast",
+    "priority": 0
+  },
+  {
+    "cost": 10.0,
+    "currency": "SGD",
+    "type": "OTHER",
+    "imagePath": "data/images/expense-protective-gear.jpg",
+    "id": 7,
+    "name": "Protective Gear",
+    "priority": 0
+  },
+  {
+    "cost": 10.0,
+    "currency": "SGD",
+    "type": "OTHER",
+    "id": 8,
+    "name": "Lost a Bet",
+    "priority": 0
   }
 ]

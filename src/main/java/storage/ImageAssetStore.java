@@ -11,7 +11,10 @@ import java.util.Locale;
 import java.util.UUID;
 
 /**
- * Stores user-selected image assets into a local data directory.
+ * Handles import and normalization of image paths used by domain entities.
+ *
+ * <p>Repositories call this utility to copy user-provided files into the local data image
+ * directory and to normalize legacy or absolute path formats.</p>
  */
 public class ImageAssetStore {
 
@@ -27,10 +30,25 @@ public class ImageAssetStore {
             "/images/philipines.jpg", "/images/philippines.jpg"
     );
 
+    /**
+     * Imports an image file into the managed asset directory.
+     *
+     * @param sourcePath source image path
+     * @param keyPrefix logical prefix used in generated filenames
+     * @return normalized stored image path, or {@code null} when import is not possible
+     */
     public String importImage(String sourcePath, String keyPrefix) {
         return importImage(sourcePath, keyPrefix, null);
     }
 
+    /**
+     * Imports an image file into the managed asset directory.
+     *
+     * @param sourcePath source image path
+     * @param keyPrefix logical prefix used in generated filenames
+     * @param semanticName optional semantic name used in generated filenames
+     * @return normalized stored image path, or {@code null} when import is not possible
+     */
     public String importImage(String sourcePath, String keyPrefix, String semanticName) {
         if (sourcePath == null || sourcePath.isBlank()) {
             return null;
@@ -69,6 +87,12 @@ public class ImageAssetStore {
         }
     }
 
+    /**
+     * Normalizes image paths into supported canonical forms.
+     *
+     * @param imagePath raw image path
+     * @return normalized image path, or {@code null} when no usable value exists
+     */
     public String normalizeImagePath(String imagePath) {
         if (imagePath == null) {
             return null;

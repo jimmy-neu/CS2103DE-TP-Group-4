@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Manages trip CRUD dialog flows and expense cleanup tied to trip lifecycle.
+ * Controller for trip CRUD dialogs and trip-level lifecycle actions.
+ *
+ * <p>This class collaborates with {@link TripManager}, {@link MainWindowLookupCrudController},
+ * and {@link expense.ExpenseRepository} to persist trip changes and clean orphaned expenses.</p>
  */
 public class MainWindowTripCrudController {
     private final TripManager tripManager;
@@ -33,6 +36,16 @@ public class MainWindowTripCrudController {
     private final Runnable refreshHeaderAction;
     private final Consumer<String> errorSink;
 
+    /**
+         * Creates a trip CRUD coordinator.
+         *
+         * @param tripManager trip lifecycle service
+         * @param expenseRepository expense repository for orphan cleanup
+         * @param lookupController lookup CRUD controller for country dialogs
+         * @param refreshTripListAction callback to refresh trip list UI
+         * @param refreshHeaderAction callback to refresh header summary UI
+         * @param errorSink callback for surfacing error messages
+     */
     public MainWindowTripCrudController(
             TripManager tripManager,
             expense.ExpenseRepository expenseRepository,
@@ -48,6 +61,9 @@ public class MainWindowTripCrudController {
         this.errorSink = errorSink;
     }
 
+    /**
+     * Opens the add-trip dialog and persists the created trip.
+     */
     public void showAddTripDialog() {
         Dialog<Trip> dialog = new Dialog<>();
         dialog.setTitle("Add Trip");
@@ -153,6 +169,12 @@ public class MainWindowTripCrudController {
         });
     }
 
+    /**
+     * Opens the edit-trip dialog for a selected trip.
+     *
+     * @param trip trip to edit
+     * @return {@code true} when a save occurred
+     */
     public boolean promptEditTrip(Trip trip) {
         if (trip == null) {
             showError("Please select a trip to edit.");
@@ -161,6 +183,12 @@ public class MainWindowTripCrudController {
         return openEditTripDialog(trip);
     }
 
+    /**
+     * Deletes a trip and cleans up orphaned expenses.
+     *
+     * @param trip trip to delete
+     * @return {@code true} when deletion succeeds
+     */
     public boolean deleteTripFromUi(Trip trip) {
         if (trip == null) {
             showError("Please select a trip to delete.");
@@ -179,6 +207,11 @@ public class MainWindowTripCrudController {
         }
     }
 
+    /**
+     * Deletes an expense if it is no longer referenced by any trip or activity.
+     *
+     * @param expenseId expense identifier
+     */
     public void cleanupExpenseIfOrphaned(int expenseId) {
         if (isExpenseReferencedAnywhere(expenseId)) {
             return;

@@ -17,7 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Dedicated JSON storage for countries.
+ * Persistence adapter for reading and writing country data as JSON.
+ *
+ * <p>This class is used by {@link country.CountryRepository} and encapsulates Gson-based file
+ * IO so repository logic remains independent from serialization details.</p>
  */
 public class CountryStorage {
 
@@ -27,15 +30,29 @@ public class CountryStorage {
     private final Gson gson;
     private final Path dataFilePath;
 
+    /**
+     * Creates storage bound to the default country data file.
+     */
     public CountryStorage() {
         this(Paths.get(DATA_DIRECTORY, DATA_FILE));
     }
 
+    /**
+     * Creates storage bound to a specific data file path.
+     *
+     * @param dataFilePath target JSON data path
+     */
     public CountryStorage(Path dataFilePath) {
         this.dataFilePath = dataFilePath;
         this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
+    /**
+     * Persists countries to the configured JSON file.
+     *
+     * @param countries countries to persist
+     * @throws IOException if writing fails
+     */
     public void save(List<Country> countries) throws IOException {
         Path directory = dataFilePath.getParent();
         if (directory != null && !Files.exists(directory)) {
@@ -46,6 +63,12 @@ public class CountryStorage {
         }
     }
 
+    /**
+     * Loads countries from the configured JSON file.
+     *
+     * @return loaded countries, or an empty list when no data is present
+     * @throws IOException if reading fails
+     */
     public List<Country> load() throws IOException {
         if (!Files.exists(dataFilePath)) {
             return new ArrayList<>();

@@ -10,22 +10,21 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Teaches Gson how to convert LocalDateTime to/from a JSON string.
+ * Gson type adapter that serializes {@link LocalDateTime} values as ISO strings.
  *
- * Without this, Gson would try to serialize LocalDateTime by exposing
- * all its internal fields (year, month, day, hour, minute, second, nano)
- * as separate JSON properties — messy and hard to read.
- *
- * With this adapter, a LocalDateTime like 2026-04-03T09:00:00 is stored
- * as a simple string "2026-04-03T09:00:00" in the JSON file.
+ * <p>This adapter is registered by storage components such as {@link JsonStorage} to keep
+ * temporal values consistent across persistence and reconstruction flows.</p>
  */
 public class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
-     * Called when Gson needs to WRITE a LocalDateTime to JSON.
-     * Converts the Java object into a string like "2026-04-03T09:00:00".
+     * Serializes a {@link LocalDateTime} value into ISO string form.
+     *
+     * @param out JSON writer
+     * @param value value to write
+     * @throws IOException if writing fails
      */
     @Override
     public void write(JsonWriter out, LocalDateTime value) throws IOException {
@@ -37,8 +36,11 @@ public class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
     }
 
     /**
-     * Called when Gson needs to READ a LocalDateTime from JSON.
-     * Converts a string like "2026-04-03T09:00:00" back into a Java object.
+     * Deserializes an ISO string into a {@link LocalDateTime} value.
+     *
+     * @param in JSON reader
+     * @return parsed datetime, or {@code null}
+     * @throws IOException if reading fails
      */
     @Override
     public LocalDateTime read(JsonReader in) throws IOException {

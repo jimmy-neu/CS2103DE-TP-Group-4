@@ -19,7 +19,10 @@ import java.util.Objects;
 import activity.Activity;
 
 /**
- * A trip that contains activities and expenses.
+ * Aggregate root representing a trip with schedule and cost details.
+ *
+ * <p>A trip owns {@link Activity} and {@link Expense} collections, references a
+ * {@link Country}, and is coordinated by {@link TripManager} for lifecycle operations.</p>
  */
 public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, Copyable<Trip> {
 
@@ -35,6 +38,15 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
 
     private LocalDateTime endDateTime;
 
+    /**
+     * Creates a trip with an explicit country.
+     *
+     * @param id trip identifier
+     * @param name trip display name
+     * @param startDateTime trip start timestamp
+     * @param endDateTime trip end timestamp
+     * @param country destination country
+     */
     public Trip(int id, String name, LocalDateTime startDateTime, LocalDateTime endDateTime, Country country) {
         super(id, name);
         setStartDateTime(startDateTime);
@@ -42,18 +54,41 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         setCountry(country);
     }
 
+    /**
+     * Creates a trip using an unspecified default country.
+     *
+     * @param id trip identifier
+     * @param name trip display name
+     * @param startDateTime trip start timestamp
+     * @param endDateTime trip end timestamp
+     */
     public Trip(int id, String name, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         this(id, name, startDateTime, endDateTime, new Country(0, "Unspecified"));
     }
 
+    /**
+     * Returns activities owned by this trip.
+     *
+     * @return immutable activity list
+     */
     public List<Activity> getActivities() {
         return Collections.unmodifiableList(activities);
     }
 
+    /**
+     * Returns expenses directly attached to this trip.
+     *
+     * @return immutable expense list
+     */
     public List<Expense> getExpenses() {
         return Collections.unmodifiableList(expenses);
     }
 
+    /**
+     * Replaces expenses directly attached to this trip.
+     *
+     * @param expenses replacement expenses, or {@code null} to clear
+     */
     public void setExpenses(List<Expense> expenses) {
         this.expenses.clear();
         if (expenses != null) {
@@ -63,19 +98,39 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         }
     }
 
+    /**
+     * Returns the destination country.
+     *
+     * @return destination country
+     */
     public Country getCountry() {
         return country;
     }
 
+    /**
+     * Updates the destination country.
+     *
+     * @param country destination country
+     */
     public void setCountry(Country country) {
         this.country = Objects.requireNonNull(country, "country");
     }
 
+    /**
+     * Returns the trip start timestamp.
+     *
+     * @return start timestamp
+     */
     @Override
     public LocalDateTime getStartDateTime() {
         return startDateTime;
     }
 
+    /**
+     * Updates the trip start timestamp.
+     *
+     * @param startDateTime start timestamp, or {@code null} to default to today at 00:00
+     */
     @Override
     public void setStartDateTime(LocalDateTime startDateTime) {
         if (startDateTime == null) {
@@ -88,11 +143,21 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         this.startDateTime = startDateTime;
     }
 
+    /**
+     * Returns the trip end timestamp.
+     *
+     * @return end timestamp
+     */
     @Override
     public LocalDateTime getEndDateTime() {
         return endDateTime;
     }
 
+    /**
+     * Updates the trip end timestamp.
+     *
+     * @param endDateTime end timestamp, or {@code null} to default to today at 23:59
+     */
     @Override
     public void setEndDateTime(LocalDateTime endDateTime) {
         if (endDateTime == null) {
@@ -105,21 +170,44 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         this.endDateTime = endDateTime;
     }
 
+    /**
+     * Adds an activity to this trip.
+     *
+     * @param activity activity to add
+     * @throws TimeIntervalConflictException declared by API contract
+     */
     public void addActivity(Activity activity) throws TimeIntervalConflictException {
         Objects.requireNonNull(activity, "activity");
         activities.add(activity);
     }
 
+    /**
+     * Deletes an activity by identifier.
+     *
+     * @param id activity id
+     * @throws ActivityNotFoundException if no matching activity exists
+     */
     public void deleteActivityById(int id) throws ActivityNotFoundException {
         Activity activity = findActivityById(id);
         activities.remove(activity);
     }
 
+    /**
+     * Deletes an activity by name.
+     *
+     * @param name activity name
+     * @throws ActivityNotFoundException if no matching activity exists
+     */
     public void deleteActivityByName(String name) throws ActivityNotFoundException {
         Activity activity = findActivityByName(name);
         activities.remove(activity);
     }
 
+    /**
+     * Returns all activities that overlap at least one other activity.
+     *
+     * @return overlapping activities
+     */
     public List<Activity> getOverlappingActivities() {
         List<Activity> result = new ArrayList<>();
         for (int i = 0; i < activities.size(); i++) {
@@ -139,6 +227,13 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         return result;
     }
 
+    /**
+     * Returns activities overlapping the supplied window.
+     *
+     * @param begin inclusive window start
+     * @param end exclusive window end
+     * @return matching activities
+     */
     public List<Activity> getOverlappingAcitivites(LocalDateTime begin, LocalDateTime end) {
         Objects.requireNonNull(begin, "begin");
         Objects.requireNonNull(end, "end");
@@ -154,37 +249,81 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         return result;
     }
 
+    /**
+     * Returns activities overlapping the supplied window.
+     *
+     * @param begin inclusive window start
+     * @param end exclusive window end
+     * @return matching activities
+     */
     public List<Activity> getOverlappingActivities(LocalDateTime begin, LocalDateTime end) {
         return getOverlappingAcitivites(begin, end);
     }
 
+    /**
+     * Adds an expense to this trip.
+     *
+     * @param expense expense to add
+     */
     @Override
     public void addExpense(Expense expense) {
         expenses.add(Objects.requireNonNull(expense, "expense"));
     }
 
+    /**
+     * Deletes an expense by identifier.
+     *
+     * @param id expense id
+     * @throws ExpenseNotFoundException if no matching expense exists
+     */
     @Override
     public void deleteExpenseById(int id) throws ExpenseNotFoundException {
         Expense expense = findExpenseById(id);
         expenses.remove(expense);
     }
 
+    /**
+     * Deletes an expense by name.
+     *
+     * @param name expense name
+     * @throws ExpenseNotFoundException if no matching expense exists
+     */
     @Override
     public void deleteExpenseByName(String name) throws ExpenseNotFoundException {
         Expense expense = findExpenseByName(name);
         expenses.remove(expense);
     }
 
+    /**
+     * Returns an expense by identifier.
+     *
+     * @param id expense id
+     * @return matching expense
+     * @throws ExpenseNotFoundException if no matching expense exists
+     */
     @Override
     public Expense getExpenseById(int id) throws ExpenseNotFoundException {
         return findExpenseById(id);
     }
 
+    /**
+     * Returns an expense by name.
+     *
+     * @param name expense name
+     * @return matching expense
+     * @throws ExpenseNotFoundException if no matching expense exists
+     */
     @Override
     public Expense getExpenseByName(String name) throws ExpenseNotFoundException {
         return findExpenseByName(name);
     }
 
+    /**
+     * Returns total expense amount for one currency across trip and activities.
+     *
+     * @param currency currency to aggregate
+     * @return total expense amount in the given currency
+     */
     @Override
     public float getTotalCost(Expense.Currency currency) {
         Objects.requireNonNull(currency, "currency");
@@ -200,6 +339,11 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         return total;
     }
 
+    /**
+     * Creates a deep copy of this trip with copied nested expenses and activities.
+     *
+     * @return copied trip
+     */
     @Override
     public Trip copy() {
         Trip copy = new Trip(getId(), getName(), startDateTime, endDateTime, country);
@@ -255,6 +399,9 @@ public class Trip extends BaseEntity implements TimeInterval, ExpenseManagable, 
         throw new ExpenseNotFoundException("Expense not found: name=" + name);
     }
 
+    /**
+     * Returns a string representation of this object.
+     */
     @Override
     public String toString() {
         return "Trip #" + getId() + ": " + getName()

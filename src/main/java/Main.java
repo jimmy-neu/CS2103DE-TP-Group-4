@@ -5,9 +5,17 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 /**
- * Minimal demo runner for the Travel Planner domain model.
+ * JavaFX bootstrap class that loads the main application scene.
+ *
+ * <p>This class initializes {@code MainWindow.fxml} and shared styling, then hands control to
+ * the JavaFX controllers declared in the loaded view.</p>
  */
 public class Main extends Application {
+    /**
+     * Initializes and shows the primary application window.
+     *
+     * @param stage primary JavaFX stage provided by the runtime
+     */
     @Override
     public void start(Stage stage) {
         try {

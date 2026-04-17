@@ -44,10 +44,10 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * JavaFX controller for the top-level application window.
+ * JavaFX controller for the application's top-level workspace and navigation.
  *
- * <p>MainWindow now focuses on page navigation, high-level wiring, and shared
- * overview UI. CRUD flows are delegated to focused controllers.</p>
+ * <p>This class wires repositories, trip services, and sub-controllers, and coordinates
+ * transitions between home, trip, and activity pages.</p>
  */
 public class MainWindow implements MainWindowControl {
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
@@ -56,6 +56,9 @@ public class MainWindow implements MainWindowControl {
         .thenComparing(Trip::getStartDateTime)
         .thenComparing(Trip::getEndDateTime);
 
+    /**
+     * Identifies the active top-level page context for contextual help.
+     */
     private enum PageContext {
         HOME,
         TRIP,
@@ -93,6 +96,9 @@ public class MainWindow implements MainWindowControl {
     private MainWindowTripCrudController tripCrudController;
     private PageContext currentPageContext = PageContext.HOME;
 
+    /**
+     * Initializes repositories, controller collaborators, and home-page bindings.
+     */
     @FXML
     public void initialize() {
         try {
@@ -133,6 +139,9 @@ public class MainWindow implements MainWindowControl {
         refreshHeaderActivitySummary();
     }
 
+    /**
+     * Displays the home page with trip list and summary panels.
+     */
     @Override
     public void showHomePage() {
         currentPageContext = PageContext.HOME;
@@ -198,6 +207,11 @@ public class MainWindow implements MainWindowControl {
         refreshHeaderActivitySummary();
     }
 
+    /**
+     * Displays the trip page for a selected trip.
+     *
+     * @param trip trip to show
+     */
     @Override
     public void showTripPage(Trip trip) {
         currentPageContext = PageContext.TRIP;
@@ -224,6 +238,12 @@ public class MainWindow implements MainWindowControl {
         }
     }
 
+    /**
+     * Displays the activity page for a selected activity.
+     *
+     * @param activity activity to show
+     * @param tripPage calling trip page used for back-navigation
+     */
     @Override
     public void showActivityPage(Activity activity, TripPage tripPage) {
         currentPageContext = PageContext.ACTIVITY;
@@ -242,61 +262,133 @@ public class MainWindow implements MainWindowControl {
         }
     }
 
+    /**
+     * Returns all available countries from lookup storage.
+     *
+     * @return available countries
+     */
     public List<Country> getAvailableCountries() {
         return lookupCrudController.getAvailableCountries();
     }
 
+    /**
+     * Returns all available locations from lookup storage.
+     *
+     * @return available locations
+     */
     @Override
     public List<Location> getAvailableLocations() {
         return lookupCrudController.getAvailableLocations();
     }
 
+    /**
+     * Opens the add-country flow.
+     *
+     * @return created country, or {@code null} when cancelled
+     */
     public Country promptAddCountry() {
         return lookupCrudController.promptAddCountry();
     }
 
+    /**
+     * Opens the edit-country flow.
+     *
+     * @param country country to edit
+     * @return updated country, or {@code null} when cancelled
+     */
     public Country promptEditCountry(Country country) {
         return lookupCrudController.promptEditCountry(country);
     }
 
+    /**
+     * Opens the add-location flow.
+     *
+     * @return created location, or {@code null} when cancelled
+     */
     @Override
     public Location promptAddLocation() {
         return lookupCrudController.promptAddLocation();
     }
 
+    /**
+     * Opens the edit-location flow.
+     *
+     * @param location location to edit
+     * @return updated location, or {@code null} when cancelled
+     */
     @Override
     public Location promptEditLocation(Location location) {
         return lookupCrudController.promptEditLocation(location);
     }
 
+    /**
+     * Opens the edit-trip flow.
+     *
+     * @param trip trip to edit
+     * @return {@code true} when a save occurred
+     */
     @Override
     public boolean promptEditTrip(Trip trip) {
         return tripCrudController.promptEditTrip(trip);
     }
 
+    /**
+     * Deletes a trip from UI and persistent stores.
+     *
+     * @param trip trip to delete
+     * @return {@code true} when deletion succeeds
+     */
     public boolean deleteTripFromUi(Trip trip) {
         return tripCrudController.deleteTripFromUi(trip);
     }
 
+    /**
+     * Deletes a country from UI and persistent stores.
+     *
+     * @param country country to delete
+     * @param onDataChanged callback run after successful deletion
+     * @return {@code true} when deletion succeeds
+     */
     public boolean deleteCountryFromUi(Country country, Runnable onDataChanged) {
         return lookupCrudController.deleteCountryFromUi(country, onDataChanged);
     }
 
+    /**
+     * Deletes a location from UI and persistent stores.
+     *
+     * @param location location to delete
+     * @param onDataChanged callback run after successful deletion
+     * @return {@code true} when deletion succeeds
+     */
     @Override
     public boolean deleteLocationFromUi(Location location, Runnable onDataChanged) {
         return lookupCrudController.deleteLocationFromUi(location, onDataChanged);
     }
 
+    /**
+     * Removes an expense from repository when no longer referenced.
+     *
+     * @param expenseId expense identifier
+     */
     @Override
     public void cleanupExpenseIfOrphaned(int expenseId) {
         tripCrudController.cleanupExpenseIfOrphaned(expenseId);
     }
 
+    /**
+     * Adds delete actions to a location combo box.
+     *
+     * @param locationCombo combo box to configure
+     * @param onDataChanged callback run after successful deletion
+     */
     @Override
     public void configureLocationComboForDelete(ComboBox<Location> locationCombo, Runnable onDataChanged) {
         lookupCrudController.configureLocationComboForDelete(locationCombo, onDataChanged);
     }
 
+    /**
+     * Refreshes derived UI or data state.
+     */
     @Override
     public void refreshHeaderActivitySummary() {
         if (activitySnapshotController == null) {
@@ -305,6 +397,9 @@ public class MainWindow implements MainWindowControl {
         activitySnapshotController.refresh(tripManager.getTrips());
     }
 
+    /**
+     * Shows contextual guidance for the trip page.
+     */
     public void showTripGuide() {
         showGuideDialog("Trip Page Guide", "Trip page controls",
             List.of(
@@ -317,6 +412,9 @@ public class MainWindow implements MainWindowControl {
             ));
     }
 
+    /**
+     * Shows contextual guidance for the activity page.
+     */
     public void showActivityGuide() {
         showGuideDialog("Activity Page Guide", "Activity expense controls",
             List.of(
@@ -412,7 +510,7 @@ public class MainWindow implements MainWindowControl {
         for (String note : notes) {
             HBox row = new HBox(8);
             row.getStyleClass().add("guide-note-row");
-            Label bullet = new Label("•");
+            Label bullet = new Label("-");
             bullet.getStyleClass().add("guide-bullet");
             Label text = new Label(note);
             text.setWrapText(true);

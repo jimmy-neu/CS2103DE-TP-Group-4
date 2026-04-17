@@ -8,15 +8,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Provides reusable, stateless filtering operations on Activity lists.
+ * Utility class providing stateless filtering operations for {@link Activity} collections.
  *
- * <p>Design rationale: filtering logic is separated from the UI controller
- * (Single Responsibility Principle) so it can be unit-tested independently
- * and reused by any future UI or CLI layer.</p>
+ * <p>This helper is used by presentation logic such as trip-page filtering so controllers can
+ * reuse tested query logic without owning filtering state.</p>
  */
 public final class ActivityFilter {
 
-    /** Prevents instantiation — all methods are static utility methods. */
+    /**
+     * Prevents instantiation because all methods are static utilities.
+     */
     private ActivityFilter() {
     }
 

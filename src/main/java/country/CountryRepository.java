@@ -14,7 +14,10 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Storage-backed repository for country business logic.
+ * Repository service for creating, updating, and deleting {@link Country} records.
+ *
+ * <p>This class coordinates in-memory identity tracking with {@link CountryStorage} persistence
+ * and {@link ImageAssetStore} image-path normalization for country data.</p>
  */
 public class CountryRepository {
 
@@ -27,15 +30,29 @@ public class CountryRepository {
     private final ImageAssetStore imageAssetStore;
     private int nextId = 1;
 
+    /**
+     * Creates a repository backed by default storage components.
+     */
     public CountryRepository() {
         this(new CountryStorage(), new ImageAssetStore());
     }
 
+    /**
+     * Creates a repository with explicit storage dependencies.
+     *
+     * @param storage country storage gateway
+     * @param imageAssetStore image import/normalization helper
+     */
     public CountryRepository(CountryStorage storage, ImageAssetStore imageAssetStore) {
         this.storage = storage;
         this.imageAssetStore = imageAssetStore;
     }
 
+    /**
+     * Loads countries from storage and rebuilds in-memory identity indexes.
+     *
+     * @throws IOException if storage read or normalization persistence fails
+     */
     public void load() throws IOException {
         countries.clear();
         countriesById.clear();
@@ -59,14 +76,32 @@ public class CountryRepository {
         }
     }
 
+    /**
+     * Persists all current countries to storage.
+     *
+     * @throws IOException if writing fails
+     */
     public void save() throws IOException {
         storage.save(countries);
     }
 
+    /**
+     * Returns an immutable snapshot of all countries.
+     *
+     * @return all known countries
+     */
     public List<Country> getCountries() {
         return Collections.unmodifiableList(countries);
     }
 
+    /**
+     * Creates and registers a new country.
+     *
+     * @param name required country name
+     * @param continent optional continent label
+     * @param imageSourcePath optional source image path to import
+     * @return created country
+     */
     public Country addCountry(String name, String continent, String imageSourcePath) {
         String normalizedName = normalizeRequired(name, "country name");
         int candidateId = nextId;
@@ -82,6 +117,15 @@ public class CountryRepository {
         return country;
     }
 
+    /**
+     * Updates an existing country.
+     *
+     * @param countryId target country id
+     * @param name required country name
+     * @param continent optional continent label
+     * @param imageSourcePath optional source image path to import
+     * @return updated country
+     */
     public Country updateCountry(int countryId, String name, String continent, String imageSourcePath) {
         Country country = countriesById.get(countryId);
         if (country == null) {
@@ -114,10 +158,22 @@ public class CountryRepository {
         return country;
     }
 
+    /**
+     * Finds a country by identifier.
+     *
+     * @param countryId country id
+     * @return matching country, or {@code null}
+     */
     public Country findById(int countryId) {
         return countriesById.get(countryId);
     }
 
+    /**
+     * Finds a country by name, case-insensitively.
+     *
+     * @param name country name
+     * @return matching country, or {@code null}
+     */
     public Country findByName(String name) {
         String normalized = normalizeOptional(name);
         if (normalized == null) {
@@ -131,6 +187,11 @@ public class CountryRepository {
         return null;
     }
 
+    /**
+     * Deletes a country by identifier.
+     *
+     * @param countryId country id
+     */
     public void deleteCountryById(int countryId) {
         Country country = countriesById.get(countryId);
         if (country == null) {

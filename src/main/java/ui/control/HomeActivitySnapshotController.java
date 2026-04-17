@@ -13,7 +13,10 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Builds and refreshes the home-header activity snapshot UI.
+ * UI helper that builds the home-page snapshot of ongoing and upcoming activities.
+ *
+ * <p>This controller reads {@link Trip} data prepared by the main window and renders summary
+ * cards into the provided JavaFX containers.</p>
  */
 public class HomeActivitySnapshotController {
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
@@ -125,10 +128,19 @@ public class HomeActivitySnapshotController {
         return card;
     }
 
+    /**
+     * Lightweight view model for one activity snapshot row.
+     */
     private static class ActivitySummaryEntry {
         private final Activity activity;
         private final String tripName;
 
+        /**
+         * Creates a lightweight snapshot entry for home-page rendering.
+         *
+         * @param activity activity shown in the snapshot card
+         * @param tripName parent trip name shown as metadata
+         */
         private ActivitySummaryEntry(Activity activity, String tripName) {
             this.activity = activity;
             this.tripName = tripName;

@@ -33,5 +33,11 @@
     "id": 5,
     "name": "France",
     "priority": 0
+  },
+  {
+    "imagePath": "data/images/country-remote.jpg",
+    "id": 6,
+    "name": "Remote",
+    "priority": 0
   }
 ]

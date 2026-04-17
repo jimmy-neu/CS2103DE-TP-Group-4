@@ -30,7 +30,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * Manages country/location lookup dialogs and deletion rules.
+ * Controller for country and location lookup CRUD workflows from the main window.
+ *
+ * <p>This class coordinates {@link CountryRepository}, {@link LocationRepository}, and
+ * {@link TripManager} constraints while delegating feedback through injected UI callbacks.</p>
  */
 public class MainWindowLookupCrudController {
     private final BorderPane rootPane;
@@ -42,6 +45,18 @@ public class MainWindowLookupCrudController {
     private final Consumer<String> errorSink;
     private final BiConsumer<String, String> infoSink;
 
+    /**
+         * Creates a lookup CRUD coordinator for countries and locations.
+         *
+         * @param rootPane main window root pane used to resolve dialog owner
+         * @param tripManager trip manager used for reference checks
+         * @param countryRepository country repository
+         * @param locationRepository location repository
+         * @param expenseRepository expense repository
+         * @param refreshHeaderAction callback to refresh header summary UI
+         * @param errorSink callback for surfacing error messages
+         * @param infoSink callback for surfacing informational messages
+     */
     public MainWindowLookupCrudController(
             BorderPane rootPane,
             TripManager tripManager,
@@ -61,14 +76,29 @@ public class MainWindowLookupCrudController {
         this.infoSink = infoSink;
     }
 
+    /**
+     * Returns all available countries.
+     *
+     * @return countries from repository
+     */
     public List<Country> getAvailableCountries() {
         return countryRepository.getCountries();
     }
 
+    /**
+     * Returns all available locations.
+     *
+     * @return locations from repository
+     */
     public List<Location> getAvailableLocations() {
         return locationRepository.getLocations();
     }
 
+    /**
+     * Opens the add-country dialog.
+     *
+     * @return created country, or {@code null} when cancelled
+     */
     public Country promptAddCountry() {
         Country country = openAddCountryDialog(getOwnerWindow());
         if (country != null) {
@@ -77,6 +107,12 @@ public class MainWindowLookupCrudController {
         return country;
     }
 
+    /**
+     * Opens the edit-country dialog.
+     *
+     * @param country country to edit
+     * @return updated country, or {@code null} when cancelled
+     */
     public Country promptEditCountry(Country country) {
         if (country == null) {
             showError("Please select a country to edit.");
@@ -89,6 +125,11 @@ public class MainWindowLookupCrudController {
         return updated;
     }
 
+    /**
+     * Opens the add-location dialog.
+     *
+     * @return created location, or {@code null} when cancelled
+     */
     public Location promptAddLocation() {
         Location location = openAddLocationDialog(getOwnerWindow());
         if (location != null) {
@@ -97,6 +138,12 @@ public class MainWindowLookupCrudController {
         return location;
     }
 
+    /**
+     * Opens the edit-location dialog.
+     *
+     * @param location location to edit
+     * @return updated location, or {@code null} when cancelled
+     */
     public Location promptEditLocation(Location location) {
         if (location == null) {
             showError("Please select a location to edit.");
@@ -109,6 +156,13 @@ public class MainWindowLookupCrudController {
         return updated;
     }
 
+    /**
+     * Deletes a country when no dependent references block the operation.
+     *
+     * @param country country to delete
+     * @param onDataChanged callback run after successful deletion
+     * @return {@code true} when deletion succeeds
+     */
     public boolean deleteCountryFromUi(Country country, Runnable onDataChanged) {
         if (country == null) {
             showError("Please select a country to delete.");
@@ -117,6 +171,13 @@ public class MainWindowLookupCrudController {
         return attemptDeleteCountry(country, onDataChanged);
     }
 
+    /**
+     * Deletes a location when no dependent references block the operation.
+     *
+     * @param location location to delete
+     * @param onDataChanged callback run after successful deletion
+     * @return {@code true} when deletion succeeds
+     */
     public boolean deleteLocationFromUi(Location location, Runnable onDataChanged) {
         if (location == null) {
             showError("Please select a location to delete.");
@@ -125,12 +186,24 @@ public class MainWindowLookupCrudController {
         return attemptDeleteLocation(location, onDataChanged);
     }
 
+    /**
+     * Adds contextual delete actions to a location combo box.
+     *
+     * @param locationCombo combo box to configure
+     * @param onDataChanged callback run after successful deletion
+     */
     public void configureLocationComboForDelete(ComboBox<Location> locationCombo, Runnable onDataChanged) {
         Callback<ListView<Location>, ListCell<Location>> factory = ignored -> createLocationCellWithDelete(onDataChanged);
         locationCombo.setCellFactory(factory);
         locationCombo.setButtonCell(createLocationCellWithDelete(onDataChanged));
     }
 
+    /**
+     * Adds contextual delete actions to a country combo box.
+     *
+     * @param countryCombo combo box to configure
+     * @param onDataChanged callback run after successful deletion
+     */
     public void configureCountryComboForDelete(ComboBox<Country> countryCombo, Runnable onDataChanged) {
         Callback<ListView<Country>, ListCell<Country>> factory = ignored -> createCountryCellWithDelete(onDataChanged);
         countryCombo.setCellFactory(factory);

@@ -41,10 +41,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * JavaFX controller for activity-level expense management.
+ * JavaFX controller for viewing and editing a single activity.
  *
- * <p>The controller depends on {@link MainWindowControl} for shared navigation
- * and lookup actions, keeping direct coupling to {@code MainWindow} low.</p>
+ * <p>This page collaborates with {@link MainWindowControl}, {@link TripPage}, and
+ * {@link ExpenseRepository} to manage activity details, expense CRUD, and navigation.</p>
  */
 public class ActivityPage {
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
@@ -78,6 +78,11 @@ public class ActivityPage {
     private ExpenseRepository expenseRepository;
     private final ImageAssetStore imageAssetStore = new ImageAssetStore();
 
+    /**
+     * Binds this page to an activity and refreshes the displayed fields.
+     *
+     * @param activity activity to display
+     */
     public void setActivity(Activity activity) {
         this.activity = activity;
         activityNameLabel.setText(activity.getName());
@@ -89,10 +94,20 @@ public class ActivityPage {
         expenseObservableList.setAll(activity.getExpenses());
     }
 
+    /**
+     * Injects the trip page used for back-navigation.
+     *
+     * @param tripPage parent trip page
+     */
     public void setTripPage(TripPage tripPage) {
         this.tripPage = tripPage;
     }
 
+    /**
+     * Injects the trip manager used for persistence after edits.
+     *
+     * @param tripManager trip manager
+     */
     public void setTripManager(trip.TripManager tripManager) {
         this.tripManager = tripManager;
     }
@@ -106,6 +121,11 @@ public class ActivityPage {
         this.mainWindowControl = mainWindowControl;
     }
 
+    /**
+     * Injects the expense repository used by expense dialogs.
+     *
+     * @param expenseRepository expense repository
+     */
     public void setExpenseRepository(ExpenseRepository expenseRepository) {
         this.expenseRepository = expenseRepository;
     }
@@ -361,11 +381,17 @@ public class ActivityPage {
                 () -> locationCombo.getItems().setAll(mainWindowControl.getAvailableLocations()));
         }
         locationCombo.setConverter(new javafx.util.StringConverter<>() {
+            /**
+             * Returns a string representation of this object.
+             */
             @Override
             public String toString(location.Location location) {
                 return location == null ? "" : location.toString();
             }
 
+            /**
+             * Parsing is not required for this display-only converter.
+             */
             @Override
             public location.Location fromString(String string) {
                 return null;
@@ -581,6 +607,11 @@ public class ActivityPage {
         dialog.showAndWait();
     }
 
+    /**
+     * Returns the bound parent trip page.
+     *
+     * @return parent trip page, or {@code null}
+     */
     public TripPage getTripPage() {
         return tripPage;
     }

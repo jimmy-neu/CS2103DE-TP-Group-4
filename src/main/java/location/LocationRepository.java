@@ -16,7 +16,10 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Storage-backed repository for location business logic.
+ * Repository service for creating, updating, and deleting {@link Location} records.
+ *
+ * <p>This class coordinates {@link LocationStorage} persistence, country resolution through
+ * {@link CountryRepository}, and image-path handling via {@link ImageAssetStore}.</p>
  */
 public class LocationRepository {
 
@@ -30,16 +33,33 @@ public class LocationRepository {
     private final ImageAssetStore imageAssetStore;
     private int nextId = 1;
 
+    /**
+     * Creates a repository backed by default storage components.
+     *
+     * @param countryRepository country lookup repository
+     */
     public LocationRepository(CountryRepository countryRepository) {
         this(new LocationStorage(), countryRepository, new ImageAssetStore());
     }
 
+    /**
+     * Creates a repository with explicit storage dependencies.
+     *
+     * @param storage location storage gateway
+     * @param countryRepository country lookup repository
+     * @param imageAssetStore image import/normalization helper
+     */
     public LocationRepository(LocationStorage storage, CountryRepository countryRepository, ImageAssetStore imageAssetStore) {
         this.storage = storage;
         this.countryRepository = countryRepository;
         this.imageAssetStore = imageAssetStore;
     }
 
+    /**
+     * Loads locations from storage and rebuilds in-memory identity indexes.
+     *
+     * @throws IOException if storage read or normalization persistence fails
+     */
     public void load() throws IOException {
         locations.clear();
         locationsById.clear();
@@ -64,18 +84,40 @@ public class LocationRepository {
         }
     }
 
+    /**
+     * Persists all current locations to storage.
+     *
+     * @throws IOException if writing fails
+     */
     public void save() throws IOException {
         storage.save(locations);
     }
 
+    /**
+     * Returns an immutable snapshot of all locations.
+     *
+     * @return all known locations
+     */
     public List<Location> getLocations() {
         return Collections.unmodifiableList(locations);
     }
 
+    /**
+     * Finds a location by identifier.
+     *
+     * @param locationId location id
+     * @return matching location, or {@code null}
+     */
     public Location findById(int locationId) {
         return locationsById.get(locationId);
     }
 
+    /**
+     * Finds a location by name, case-insensitively.
+     *
+     * @param name location name
+     * @return matching location, or {@code null}
+     */
     public Location findByName(String name) {
         String normalizedName = normalizeOptional(name);
         if (normalizedName == null) {
@@ -89,6 +131,11 @@ public class LocationRepository {
         return null;
     }
 
+    /**
+     * Deletes a location by identifier.
+     *
+     * @param locationId location id
+     */
     public void deleteLocationById(int locationId) {
         Location location = locationsById.get(locationId);
         if (location == null) {
@@ -100,6 +147,18 @@ public class LocationRepository {
         USED_LOCATION_NAMES.remove(location.getName().trim().toLowerCase());
     }
 
+    /**
+     * Creates and registers a new location.
+     *
+     * @param name required location name
+     * @param address optional address text
+     * @param city optional city text
+     * @param countryId owning country id
+     * @param latitude optional latitude
+     * @param longitude optional longitude
+     * @param imageSourcePath optional source image path to import
+     * @return created location
+     */
     public Location addLocation(String name, String address, String city, int countryId,
                                 Double latitude, Double longitude, String imageSourcePath) {
         String normalizedName = normalizeRequired(name, "location name");
@@ -123,6 +182,19 @@ public class LocationRepository {
         return location;
     }
 
+    /**
+     * Updates an existing location.
+     *
+     * @param locationId target location id
+     * @param name required location name
+     * @param address optional address text
+     * @param city optional city text
+     * @param countryId owning country id
+     * @param latitude optional latitude
+     * @param longitude optional longitude
+     * @param imageSourcePath optional source image path to import
+     * @return updated location
+     */
     public Location updateLocation(int locationId, String name, String address, String city, int countryId,
                                    Double latitude, Double longitude, String imageSourcePath) {
         Location location = locationsById.get(locationId);

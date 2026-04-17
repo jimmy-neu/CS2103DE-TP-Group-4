@@ -87,5 +87,34 @@
     "expenseIds": [
       4
     ]
+  },
+  {
+    "id": 4,
+    "name": "JB Trip",
+    "priority": 0,
+    "startDateTime": "2026-04-21T09:00:00",
+    "endDateTime": "2026-04-22T20:00:00",
+    "countryId": 4,
+    "activities": [
+      {
+        "id": 1,
+        "name": "Go Karting",
+        "priority": 0,
+        "startDateTime": "2026-04-21T10:00:00",
+        "endDateTime": "2026-04-21T16:00:00",
+        "types": [
+          "OTHER"
+        ],
+        "expenseIds": [
+          5,
+          7,
+          8
+        ],
+        "locationId": 5
+      }
+    ],
+    "expenseIds": [
+      6
+    ]
   }
 ]

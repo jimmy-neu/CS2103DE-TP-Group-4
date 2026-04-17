@@ -17,7 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Dedicated JSON storage for expenses.
+ * Persistence adapter for reading and writing expense data as JSON.
+ *
+ * <p>This class is consumed by {@link expense.ExpenseRepository} and isolates Gson file
+ * serialization concerns from expense business logic.</p>
  */
 public class ExpenseStorage {
 
@@ -27,15 +30,29 @@ public class ExpenseStorage {
     private final Gson gson;
     private final Path dataFilePath;
 
+    /**
+     * Creates storage bound to the default expense data file.
+     */
     public ExpenseStorage() {
         this(Paths.get(DATA_DIRECTORY, DATA_FILE));
     }
 
+    /**
+     * Creates storage bound to a specific data file path.
+     *
+     * @param dataFilePath target JSON data path
+     */
     public ExpenseStorage(Path dataFilePath) {
         this.dataFilePath = dataFilePath;
         this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
+    /**
+     * Persists expenses to the configured JSON file.
+     *
+     * @param expenses expenses to persist
+     * @throws IOException if writing fails
+     */
     public void save(List<Expense> expenses) throws IOException {
         Path directory = dataFilePath.getParent();
         if (directory != null && !Files.exists(directory)) {
@@ -46,6 +63,12 @@ public class ExpenseStorage {
         }
     }
 
+    /**
+     * Loads expenses from the configured JSON file.
+     *
+     * @return loaded expenses, or an empty list when no data is present
+     * @throws IOException if reading fails
+     */
     public List<Expense> load() throws IOException {
         if (!Files.exists(dataFilePath)) {
             return new ArrayList<>();

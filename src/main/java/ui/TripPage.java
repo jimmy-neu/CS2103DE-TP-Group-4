@@ -54,10 +54,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * JavaFX controller for the trip details page.
+ * JavaFX controller for displaying and editing trip-level details.
  *
- * <p>The page depends on {@link MainWindowControl} rather than directly on
- * {@code MainWindow} to reduce cross-controller coupling.</p>
+ * <p>This page coordinates activity and expense views, timeline rendering, filtering via
+ * {@link ActivityFilter}, and navigation through {@link MainWindowControl}.</p>
  */
 public class TripPage {
     private static final double MIN_DAY_TIMELINE_WIDTH = 220.0;
@@ -115,6 +115,11 @@ public class TripPage {
     private MainWindowControl mainWindowControl;
     private trip.TripManager tripManager;
 
+    /**
+     * Binds this page to a trip and refreshes all visible sections.
+     *
+     * @param trip trip to display
+     */
     public void setTrip(Trip trip) {
         this.trip = trip;
         tripNameLabel.setText(trip.getName());
@@ -138,10 +143,20 @@ public class TripPage {
         this.mainWindowControl = mainWindowControl;
     }
 
+    /**
+     * Injects the trip manager used for persistence after edits.
+     *
+     * @param tripManager trip manager
+     */
     public void setTripManager(trip.TripManager tripManager) {
         this.tripManager = tripManager;
     }
 
+    /**
+     * Injects the expense repository used by expense dialogs.
+     *
+     * @param expenseRepository expense repository
+     */
     public void setExpenseRepository(ExpenseRepository expenseRepository) {
         this.expenseRepository = expenseRepository;
     }
@@ -438,9 +453,9 @@ public class TripPage {
             blockName.getStyleClass().add("timeline-block-name");
             blockName.setWrapText(true);
 
-            Label blockMeta = new Label(createTimeRangeText(segment.startMinute, segment.endMinute)
-                    + " • " + typeText
-                    + (segment.multiDay ? " • Multi-day" : ""));
+                Label blockMeta = new Label(createTimeRangeText(segment.startMinute, segment.endMinute)
+                    + " | " + typeText
+                    + (segment.multiDay ? " | Multi-day" : ""));
             blockMeta.getStyleClass().add("timeline-block-meta");
             blockMeta.setWrapText(true);
 
@@ -912,11 +927,17 @@ public class TripPage {
             mainWindowControl.configureLocationComboForDelete(locationCombo, refreshLocations);
         }
         locationCombo.setConverter(new StringConverter<>() {
+            /**
+             * Returns a string representation of this object.
+             */
             @Override
             public String toString(location.Location location) {
                 return location == null ? "" : location.toString();
             }
 
+            /**
+             * Parsing is not required for this display-only converter.
+             */
             @Override
             public location.Location fromString(String string) {
                 return null;
@@ -1077,11 +1098,17 @@ public class TripPage {
             mainWindowControl.configureLocationComboForDelete(locationCombo, refreshLocations);
         }
         locationCombo.setConverter(new StringConverter<>() {
+            /**
+             * Returns a string representation of this object.
+             */
             @Override
             public String toString(location.Location location) {
                 return location == null ? "" : location.toString();
             }
 
+            /**
+             * Parsing is not required for this display-only converter.
+             */
             @Override
             public location.Location fromString(String string) {
                 return null;
@@ -1224,12 +1251,20 @@ public class TripPage {
         }
     }
 
+    /**
+     * Navigates back to this trip page from a child page.
+     */
     public void showTripPage() {
         if (mainWindowControl != null && trip != null) {
             mainWindowControl.showTripPage(trip);
         }
     }
 
+    /**
+     * Returns the currently bound trip.
+     *
+     * @return currently displayed trip, or {@code null}
+     */
     public Trip getTrip() {
         return trip;
     }
@@ -1316,6 +1351,9 @@ public class TripPage {
         }
     }
 
+    /**
+     * Represents the class DaySegment.
+     */
     private static class DaySegment {
         private final Activity activity;
         private final int startMinute;
@@ -1324,6 +1362,14 @@ public class TripPage {
         private final boolean multiDay;
         private int lane;
 
+        /**
+         * Creates a timeline segment projection for one activity span.
+         * @param activity source activity represented by this segment.
+         * @param startMinute segment start offset in minutes from day start.
+         * @param endMinute segment end offset in minutes from day start.
+         * @param overlaps whether the segment overlaps another segment.
+         * @param multiDay whether the segment crosses day boundaries.
+         */
         private DaySegment(Activity activity, int startMinute, int endMinute, boolean overlaps, boolean multiDay) {
             this.activity = activity;
             this.startMinute = startMinute;

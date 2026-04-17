@@ -14,7 +14,10 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * Storage-backed repository for expense records.
+ * Repository service for lifecycle management of {@link Expense} records.
+ *
+ * <p>This class coordinates ID tracking with {@link ExpenseStorage} persistence and
+ * {@link ImageAssetStore} image handling, and is consumed by trip and activity UI flows.</p>
  */
 public class ExpenseRepository {
 
@@ -26,15 +29,29 @@ public class ExpenseRepository {
     private final ImageAssetStore imageAssetStore;
     private int nextId = 1;
 
+    /**
+     * Creates a repository backed by default storage components.
+     */
     public ExpenseRepository() {
         this(new ExpenseStorage(), new ImageAssetStore());
     }
 
+    /**
+     * Creates a repository with explicit storage dependencies.
+     *
+     * @param storage expense storage gateway
+     * @param imageAssetStore image import/normalization helper
+     */
     public ExpenseRepository(ExpenseStorage storage, ImageAssetStore imageAssetStore) {
         this.storage = storage;
         this.imageAssetStore = imageAssetStore;
     }
 
+    /**
+     * Loads expenses from storage and rebuilds in-memory identity indexes.
+     *
+     * @throws IOException if storage read or normalization persistence fails
+     */
     public void load() throws IOException {
         expenses.clear();
         expensesById.clear();
@@ -59,18 +76,39 @@ public class ExpenseRepository {
         }
     }
 
+    /**
+     * Persists all current expenses to storage.
+     *
+     * @throws IOException if writing fails
+     */
     public void save() throws IOException {
         storage.save(expenses);
     }
 
+    /**
+     * Returns an immutable snapshot of all expenses.
+     *
+     * @return all known expenses
+     */
     public List<Expense> getExpenses() {
         return Collections.unmodifiableList(expenses);
     }
 
+    /**
+     * Finds an expense by identifier.
+     *
+     * @param id expense id
+     * @return matching expense, or {@code null}
+     */
     public Expense findById(int id) {
         return expensesById.get(id);
     }
 
+    /**
+     * Returns the next available expense id.
+     *
+     * @return next unused identifier
+     */
     public int nextAvailableId() {
         while (USED_EXPENSE_IDS.contains(nextId)) {
             nextId++;
@@ -78,6 +116,16 @@ public class ExpenseRepository {
         return nextId;
     }
 
+    /**
+     * Creates and registers a new expense.
+     *
+     * @param name required expense name
+     * @param cost expense amount
+     * @param currency expense currency
+     * @param type expense category
+     * @param imageSourcePath optional source image path to import
+     * @return created expense
+     */
     public Expense createExpense(String name, float cost, Expense.Currency currency, Expense.Type type,
                                  String imageSourcePath) {
         int id = nextAvailableId();
@@ -88,6 +136,17 @@ public class ExpenseRepository {
         return expense;
     }
 
+    /**
+     * Updates an existing expense.
+     *
+     * @param expenseId target expense id
+     * @param name required expense name
+     * @param cost expense amount
+     * @param currency expense currency
+     * @param type expense category
+     * @param imageSourcePath optional source image path to import
+     * @return updated expense
+     */
     public Expense updateExpense(int expenseId, String name, float cost, Expense.Currency currency, Expense.Type type,
                                  String imageSourcePath) {
         Expense expense = expensesById.get(expenseId);
@@ -111,6 +170,11 @@ public class ExpenseRepository {
         return expense;
     }
 
+    /**
+     * Deletes an expense by identifier.
+     *
+     * @param expenseId expense id
+     */
     public void deleteExpenseById(int expenseId) {
         Expense expense = expensesById.remove(expenseId);
         if (expense == null) {
@@ -120,6 +184,11 @@ public class ExpenseRepository {
         USED_EXPENSE_IDS.remove(expenseId);
     }
 
+    /**
+     * Deletes an expense by exact name.
+     *
+     * @param name expense name
+     */
     public void deleteExpenseByName(String name) {
         String normalizedName = normalizeRequired(name, "expense name");
         Expense target = null;
@@ -135,6 +204,11 @@ public class ExpenseRepository {
         deleteExpenseById(target.getId());
     }
 
+    /**
+     * Registers an existing expense instance in this repository.
+     *
+     * @param expense expense to register
+     */
     public void registerExpense(Expense expense) {
         registerExpenseId(expense.getId());
         expenses.add(expense);

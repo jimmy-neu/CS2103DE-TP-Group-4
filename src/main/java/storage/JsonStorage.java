@@ -33,24 +33,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Handles saving and loading Trip data to/from a JSON file.
+ * Persistence gateway for saving and loading trip aggregates as JSON.
  *
- * HOW IT WORKS (for beginners):
- * =============================
- * 1. We use a library called "Gson" (by Google) that can convert
- *    Java objects into JSON text and back again.
- *
- * 2. When we SAVE: Gson looks at all the fields in your Trip objects
- *    (name, startDateTime, activities, expenses, etc.) and writes them
- *    out as a structured JSON text file.
- *
- * 3. When we LOAD: Gson reads that JSON text file and recreates the
- *    Java objects (Trip, Activity, Expense, Location) from the data.
- *
- * 4. We need some special configuration because:
- *    - LocalDateTime is not a simple type (Gson needs help with it)
- *    - BufferedImage (for images) can't be stored as JSON text
- *    - Trip and Activity constructors have validation rules
+ * <p>This class is used by {@link trip.TripManager} and coordinates Gson adapters for
+ * {@link Trip}, {@link Activity}, {@link LocalDateTime}, and related reference serialization.</p>
  */
 public class JsonStorage {
 
@@ -120,11 +106,17 @@ public class JsonStorage {
                 // Tell Gson to skip any BufferedImage fields.
                 // Images are binary data and don't belong in a text-based JSON file.
                 .setExclusionStrategies(new ExclusionStrategy() {
+                    /**
+                     * Skips BufferedImage fields during JSON serialization.
+                     */
                     @Override
                     public boolean shouldSkipField(FieldAttributes field) {
                         return field.getDeclaredType() == BufferedImage.class;
                     }
 
+                    /**
+                     * Skips BufferedImage class types during JSON serialization.
+                     */
                     @Override
                     public boolean shouldSkipClass(Class<?> clazz) {
                         return clazz == BufferedImage.class;
@@ -176,13 +168,13 @@ public class JsonStorage {
      */
     public List<Trip> load() throws IOException {
         if (!Files.exists(dataFilePath)) {
-            // No saved data yet — this is fine, just return empty
+            // No saved data yet - this is fine, just return empty
             return new ArrayList<>();
         }
 
         try (Reader reader = Files.newBufferedReader(dataFilePath)) {
             // TypeToken tells Gson we want a List<Trip>, not just a single Trip.
-            // This is needed because of Java's "type erasure" — at runtime,
+            // This is needed because of Java's "type erasure" - at runtime,
             // Java forgets the <Trip> part, so we use TypeToken to preserve it.
             Type listType = new TypeToken<List<Trip>>() {}.getType();
             List<Trip> trips = gson.fromJson(reader, listType);
@@ -215,6 +207,9 @@ public class JsonStorage {
      * Serializer for Trip that stores references instead of nested country payload.
      */
     private static class TripSerializer implements JsonSerializer<Trip> {
+        /**
+         * Converts a trip into its JSON representation.
+         */
         @Override
         public JsonElement serialize(Trip src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
@@ -244,6 +239,9 @@ public class JsonStorage {
      * create one, it calls this code which properly uses the Trip constructor.
      */
     private static class TripDeserializer implements JsonDeserializer<Trip> {
+        /**
+         * Converts JSON into a trip instance.
+         */
         @Override
         public Trip deserialize(JsonElement json, Type typeOfT,
                                 JsonDeserializationContext context) throws JsonParseException {
@@ -335,6 +333,9 @@ public class JsonStorage {
      * Serializer for Activity that stores location references by id.
      */
     private static class ActivitySerializer implements JsonSerializer<Activity> {
+        /**
+         * Converts an activity into its JSON representation.
+         */
         @Override
         public JsonElement serialize(Activity src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
@@ -359,9 +360,12 @@ public class JsonStorage {
 
     /**
      * Custom deserializer for Activity objects.
-     * Same idea as TripDeserializer — we need to call the constructor properly.
+    * Same idea as TripDeserializer - we need to call the constructor properly.
      */
     private static class ActivityDeserializer implements JsonDeserializer<Activity> {
+        /**
+         * Converts JSON into an activity instance.
+         */
         @Override
         public Activity deserialize(JsonElement json, Type typeOfT,
                                     JsonDeserializationContext context) throws JsonParseException {
@@ -427,6 +431,9 @@ public class JsonStorage {
      * Custom deserializer for Location with optional fields and backwards compatibility.
      */
     private static class LocationDeserializer implements JsonDeserializer<Location> {
+        /**
+         * Converts JSON into a location instance.
+         */
         @Override
         public Location deserialize(JsonElement json, Type typeOfT,
                                     JsonDeserializationContext context) throws JsonParseException {
@@ -490,6 +497,9 @@ public class JsonStorage {
      * Deserializer for country with safe fallbacks.
      */
     private static class CountryDeserializer implements JsonDeserializer<Country> {
+        /**
+         * Converts JSON into a country instance.
+         */
         @Override
         public Country deserialize(JsonElement json, Type typeOfT,
                                    JsonDeserializationContext context) throws JsonParseException {

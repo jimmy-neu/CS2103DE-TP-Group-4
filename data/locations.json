@@ -27,5 +27,18 @@
     "city": "Paris",
     "countryId": 5,
     "imagePath": "data/images/location-eiffel-tower.jpg"
+  },
+  {
+    "id": 5,
+    "name": "RUD Karting",
+    "city": "Johor Bahru",
+    "countryId": 4,
+    "imagePath": "data/images/location-rud-karting.jpg"
+  },
+  {
+    "id": 6,
+    "name": "Remote",
+    "countryId": 6,
+    "imagePath": "data/images/location-remote.jpg"
   }
 ]
