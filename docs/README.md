@@ -173,8 +173,8 @@ Use this README as the entrypoint, then move into detailed guides:
 
 - Product Requirements: [PRD.md](PRD.md)
 - Software Design Document: [SDD.md](SDD.md)
-- User Guide: [user.guide](userGuide.md)
-- Developer Guide: [DG.md](DG.md)
+- User Guide: [userGuide.md](userGuide.md)
+- Developer Guide: [developerGuide.md](developerGuide.md)
 - API Reference: [API.md](API.md)
 
 ## Troubleshooting
